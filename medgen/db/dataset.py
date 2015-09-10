@@ -233,7 +233,7 @@ class SQLData(object):
         if maxlen < 3:
             raise RuntimeError('maxlen must be at least 3')
         if len(inp) > maxlen:
-            inp = '%s...' % inp[:m-3]
+            inp = '%s...' % inp[:maxlen-3]
         return inp
 
     def str_or_null(self, inp, truncate_str=False, maxlen=200):
@@ -260,7 +260,7 @@ class SQLData(object):
         :param entity_name: table name for db, for example, bic_brca1
         :return: datetime if found
         '''
-        sql_query = 'SELECT event_time FROM log WHERE entity_name = "%s" AND message like "rows loaded %" ORDER BY event_time DESC limit 1' % entity_name
+        sql_query = 'SELECT event_time FROM log WHERE entity_name = "?" AND message like "rows loaded %" ORDER BY event_time DESC limit 1'.replace('?', entity_name)
         result = self.fetchrow(sql_query)
         if result:
             return result['event_time']
