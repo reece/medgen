@@ -1,0 +1,12 @@
+setuptools==17.1
+MySQL-Python
+pysqlpool
+configparser
+IPython
+nose
+coverage
+mock
+PyHamcrest
+requests
+metapub
+pyrfc3339
