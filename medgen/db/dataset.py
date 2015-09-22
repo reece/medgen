@@ -16,7 +16,7 @@ DEFAULT_DATASET = 'medgen'
 
 SQLDATE_FMT = '%Y-%m-%d %H:%M:%S'
 def EscapeString(value):
-    value = value.replace('"', '\\"')
+    value = mdb.escape_string(value)
     return '"{}"'.format(value)
 
 def SQLdatetime(pydatetime_or_string):
@@ -121,11 +121,11 @@ class SQLData(object):
         values = []
 
         for k,v in field_value_dict.items():
-            if v==None:
-                continue
             fields.append(k)
+            if v==None:
+                v = 'NULL'
             # surround strings and datetimes with quotation marks
-            if hasattr(v, 'strftime'):
+            elif hasattr(v, 'strftime'):
                 v = '"%s"' % v.strftime(SQLDATE_FMT)
             elif hasattr(v, 'lower'):
                 v = EscapeString(v) # surrounds strings with quotes and unicodes them.
@@ -135,7 +135,8 @@ class SQLData(object):
             values.append(v)
 
         sql = 'insert into {} ({}) values ({});'.format(tablename, ','.join(fields), ','.join(values))
-        #print(sql)
+
+        log.debug(sql)
         queryobj = self.execute(sql)
         # retrieve and return the row id of the insert. returns 0 if insert failed.
         return queryobj.lastInsertID
@@ -166,6 +167,40 @@ class SQLData(object):
             clauses.append(clause)
 
         sql = 'update %s set %s where %s=%i;' % (tablename, ', '.join(clauses), id_col_name, row_id)
+        queryobj = self.execute(sql)
+        # retrieve and return the row id of the insert. returns 0 if insert failed.
+        return queryobj.lastInsertID
+
+    def delete(self, tablename, field_value_dict):
+        '''
+        :param: tablename: name of table to receive new row
+        :param: field_value_dict: map of field=value
+        :return: row_id (integer) (returns 0 if insert failed)
+        '''
+        if len(field_value_dict)==0:
+            raise RuntimeError("Do not support delete without a WHERE clause")
+
+        where_sql = ''
+        for k,v in field_value_dict.items():
+            if v==None:
+                v = 'NULL'
+                where_sql += 'AND {} is NULL '.format(k)
+            # surround strings and datetimes with quotation marks
+            elif hasattr(v, 'strftime'):
+                v = '"%s"' % v.strftime(SQLDATE_FMT)
+                where_sql += 'AND {}={} '.format(k, v)
+            elif hasattr(v, 'lower'):
+                v = EscapeString(v) # surrounds strings with quotes and unicodes them.
+                where_sql += 'AND {}={} '.format(k, v)
+            else:
+                v = unicode(v)
+                where_sql += 'AND {}={} '.format(k, v)
+
+        where_sql =  where_sql[len('AND '):]
+
+        sql = 'delete from {} where {};'.format(tablename, where_sql)
+
+        log.debug(sql)
         queryobj = self.execute(sql)
         # retrieve and return the row id of the insert. returns 0 if insert failed.
         return queryobj.lastInsertID
@@ -235,23 +270,6 @@ class SQLData(object):
         if len(inp) > maxlen:
             inp = '%s...' % inp[:maxlen-3]
         return inp
-
-    def str_or_null(self, inp, truncate_str=False, maxlen=200):
-        '''
-        Useful utility method for MySQL insertion statements text in a database
-
-        :param None or some object with __str__ implemented
-        :param truncate_str: whether to truncate string to maxlen
-        :param maxlen: the max length for a string [default: 200]
-        :return: 'null' or '"%s"' % t or '"%s..."' % t[:m-3]
-        '''
-        if inp is None:
-            return 'null'
-        #inp = mdb.escape_string(str(inp))
-        inp = EscapeString(inp)
-        if truncate_str:
-            inp = self.trunc_str(str(inp), maxlen)
-        return '"%s"' % str(inp)
 
     def get_last_mirror_time(self, entity_name):
         '''

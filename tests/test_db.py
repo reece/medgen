@@ -25,16 +25,6 @@ class ConnectDBsTestCase(TestCase):
         s_truncated = db.trunc_str(s, 200)
         assert_that(len(s_truncated), is_(200))
 
-    def test_str_or_null(self):
-        s = "NP_775931.3:p.(Pro504delinsArgGluProGlnIleProProArgGlyCysLysGlyAlaGluPheAlaProArgTrpGlnArgLysTrpArgGlnProProCysArgLeuValLeuCysValLeuTrpGluGlyProGlyValSerArgArgGlyGluLeuGluGlyAlaProCysGlyCysHisArgArgLysGlyLeuThrTrpGlyGlyGluPheTrpLysAlaGlyAlaLeuGlyProAlaGlyArgGlyHisGlnSerProAsnAlaGlnLeuLeuHisSerValSerProThrProGluAspGlnValSerAlaAlaProLeuLeuAlaArgAlaLeuHisTrpGlyAlaLysGlyTrpArgProCysArgTrpProCysProProTrpAlaSerArgProLeuArgGlyTrpProValLeuProIleThrSerLeuGlyGlnSerHisHisLeuLeuSerIleLysLeuProGlnArgLeuArgProProGlyLeuHisGlnProSerProProGlyLeuArgValArgTrpAlaSerSerProSerMetGlyGlyAsn)"
-        db = SQLData(dataset='medgen')
-        s2 = db.str_or_null(s, 200)
-        assert_that(len(s2), is_(202))
-        assert_that(s2[0], is_('"'))
-        assert_that(s2[-1], is_('"'))
-        s3 = None
-        s4 = db.str_or_null(s3, 200)
-        assert_that(s4, is_('null'))
 
 
 
