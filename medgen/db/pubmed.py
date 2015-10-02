@@ -39,12 +39,10 @@ class PubMedDB(SQLData):
     def medline_xml_filename_insert(self, filename):
         """
         Book Keeping method for Medline XML
-        :param filename:
-        :return:
+        :param filename: name of medline_xml file
+        :return: result of SQL insert
         """
-        sql_insert = "INSERT INTO medline_xml_filename (filename) "
-        sql_values = [filename]
-        return self.insert(sql_insert, sql_values)
+        return self.insert("medline_xml_filename", {"filename" : filename})
 
     def _get_tstamp(self, xml_block):
         """
