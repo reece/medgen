@@ -160,7 +160,7 @@ class SQLData(object):
                 clause += 'NULL'
             elif hasattr(v, 'strftime'):
                 clause += '"%s"' % v.strftime(SQLDATE_FMT)
-            elif hasattr(v, 'lower'):
+            elif isinstance(v, basestring):
                 clause += EscapeString(v) #surrounds strings with quotes and unicodes them.
             else:
                 clause += unicode(v)
@@ -189,7 +189,7 @@ class SQLData(object):
             elif hasattr(v, 'strftime'):
                 v = '"%s"' % v.strftime(SQLDATE_FMT)
                 where_sql += 'AND {}={} '.format(k, v)
-            elif hasattr(v, 'lower'):
+            elif isinstance(v, basestring):
                 v = EscapeString(v) # surrounds strings with quotes and unicodes them.
                 where_sql += 'AND {}={} '.format(k, v)
             else:
