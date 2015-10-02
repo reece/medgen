@@ -309,3 +309,16 @@ class ClinVarDB(SQLData):
                              " order by cnt_variants    desc "
                              .replace('?', str(gene.id)) )
 
+
+    def get_version(self):
+        '''
+        Get the ClinVar version
+        :return: string with version, such as '2015-10-2'
+        '''
+        try:
+            sql_query = "select version from version_info order by last_loaded desc limit 1"
+            return self.fetchrow(sql_query)['version']
+        except:
+            log.debug('No version numbers found for ClinVar')
+            return None
+

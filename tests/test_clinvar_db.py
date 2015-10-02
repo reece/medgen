@@ -152,3 +152,7 @@ class TestClinVarDB(TestCase):
         assert_that(3 == len(ClinvarPubmeds(hgvs_text)))
 
         assert_that(set(ClinvarPubmeds(hgvs_text)) == pmid_expected)
+
+    def test_get_version(self):
+        version_str = self.db.get_version()
+        assert_that(len(version_str), greater_than(0))
