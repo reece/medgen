@@ -158,7 +158,7 @@ class PubMedDB(SQLData):
         To commit, must run:
         PySQLPool.commitPool()
 
-        :param xml: xml
+        :param xml: xml (str)
         :return: result of sql query for insertion or update, or None of nothing was inserted
         """
         pmid = self._get_PMID(xml)
@@ -169,16 +169,19 @@ class PubMedDB(SQLData):
 
         # update if there is no xml for the PMID, or the xml is newer than the one in the DB
         if record_in_db is None:
-            sql_values = (
-                str(pmid),
-                MySQLdb.escape_string(xml),
-                str(last_date),
-                str(filename_id)
-            )
-            sql_insert = 'INSERT INTO medline_xml (PMID, xml, Tstamp, medline_xml_filename_id) VALUES (%s, "%s", "%s", %s) ' % sql_values
-            sql_insert += 'ON DUPLICATE KEY UPDATE xml=values(xml), Tstamp=values(Tstamp), medline_xml_filename_id=values(medline_xml_filename_id)'
+            d = {"PMID" : pmid, "xml" : xml, "Tstamp" : str(last_date), "medline_xml_filename_id" : filename_id }
+            return self.insert("medline_xml", d)
 
-            return self.execute(sql_insert)
+            # sql_values = (
+            #     str(pmid),
+            #     MySQLdb.escape_string(xml),
+            #     str(last_date),
+            #     str(filename_id)
+            # )
+            # sql_insert = 'INSERT INTO medline_xml (PMID, xml, Tstamp, medline_xml_filename_id) VALUES (%s, "%s", "%s", %s) ' % sql_values
+            # sql_insert += 'ON DUPLICATE KEY UPDATE xml=values(xml), Tstamp=values(Tstamp), medline_xml_filename_id=values(medline_xml_filename_id)'
+            #
+            # return self.execute(sql_insert)
 
         return None
 
