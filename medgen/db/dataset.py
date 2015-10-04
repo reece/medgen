@@ -16,8 +16,9 @@ DEFAULT_DATASET = 'medgen'
 
 SQLDATE_FMT = '%Y-%m-%d %H:%M:%S'
 def EscapeString(value):
+    value = value.encode("utf-8")
     value = mdb.escape_string(value)
-    return u'"{}"'.format(value)
+    return '"{}"'.format(value)
 
 def SQLdatetime(pydatetime_or_string):
     if hasattr(pydatetime_or_string, 'strftime'):
@@ -122,24 +123,13 @@ class SQLData(object):
 
         for k,v in field_value_dict.items():
             fields.append(k)
-            if v==None:
-                v = 'NULL'
-            # surround strings and datetimes with quotation marks
-            elif hasattr(v, 'strftime'):
-                v = '"%s"' % v.strftime(SQLDATE_FMT)
-            elif isinstance(v, basestring):
-                v = EscapeString(v) # surrounds strings with quotes and unicodes them.
-            else:
-                v = unicode(v)
-
             values.append(v)
 
-        sql = 'insert into {} ({}) values ({});'.format(tablename, ','.join(fields), ','.join(values))
-
-        log.debug(sql)
-        queryobj = self.execute(sql)
-        # retrieve and return the row id of the insert. returns 0 if insert failed.
+        sql = 'insert into {} ({}) values ({});'.format(tablename, ','.join(fields), ','.join(['%s' for v in values]))
+        queryobj = self.execute(sql, values)
         return queryobj.lastInsertID
+
+
 
     def update(self, tablename, id_col_name, row_id, field_value_dict):
         '''
@@ -211,15 +201,14 @@ class SQLData(object):
     def truncate(self, tablename):
         return self.execute(" truncate " + tablename)
 
-    def execute(self, sql):
+    def execute(self, sql, args=None):
         '''
         Excutes arbitrary sql string in current database connection.    
         Returns results as PySQLPool query object.
         '''
         log.debug('SQL.execute ' + sql)
         queryobj = PySQLPool.getNewQuery(self.connect())
-        queryobj.Query(sql)
-
+        queryobj.Query(sql, args)
         return queryobj
 
     def ping(self):
