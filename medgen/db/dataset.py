@@ -17,7 +17,7 @@ DEFAULT_DATASET = 'medgen'
 SQLDATE_FMT = '%Y-%m-%d %H:%M:%S'
 def EscapeString(value):
     value = mdb.escape_string(value)
-    return '"{}"'.format(value)
+    return u'"{}"'.format(value)
 
 def SQLdatetime(pydatetime_or_string):
     if hasattr(pydatetime_or_string, 'strftime'):
@@ -127,7 +127,7 @@ class SQLData(object):
             # surround strings and datetimes with quotation marks
             elif hasattr(v, 'strftime'):
                 v = '"%s"' % v.strftime(SQLDATE_FMT)
-            elif hasattr(v, 'lower'):
+            elif isinstance(v, basestring):
                 v = EscapeString(v) # surrounds strings with quotes and unicodes them.
             else:
                 v = unicode(v)
