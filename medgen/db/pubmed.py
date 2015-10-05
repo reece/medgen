@@ -135,7 +135,7 @@ class PubMedDB(SQLData):
         :param max_tstamp (date)
         :return: row (dict)
         """
-        sql_query = 'SELECT * FROM medline_xml WHERE pmid=%s and Tstamp<"%s"' % (str(pmid), str(max_tstamp))
+        sql_query = 'SELECT * FROM medline_xml WHERE pmid=%s and Tstamp>"%s"' % (str(pmid), str(max_tstamp))
         return self.fetchrow(sql_query)
 
 
@@ -167,21 +167,11 @@ class PubMedDB(SQLData):
         # find any row with the same PMID and that are older than max stamp
         record_in_db = self.medline_xml_select_by_pmid_and_max_tstamp(pmid, last_date)
 
-        # update if there is no xml for the PMID, or the xml is newer than the one in the DB
         if record_in_db is None:
-            d = {"PMID" : pmid, "xml" : xml, "Tstamp" : str(last_date), "medline_xml_filename_id" : filename_id }
-            return self.insert("medline_xml", d)
-
-            # sql_values = (
-            #     str(pmid),
-            #     MySQLdb.escape_string(xml),
-            #     str(last_date),
-            #     str(filename_id)
-            # )
-            # sql_insert = 'INSERT INTO medline_xml (PMID, xml, Tstamp, medline_xml_filename_id) VALUES (%s, "%s", "%s", %s) ' % sql_values
-            # sql_insert += 'ON DUPLICATE KEY UPDATE xml=values(xml), Tstamp=values(Tstamp), medline_xml_filename_id=values(medline_xml_filename_id)'
-            #
-            # return self.execute(sql_insert)
+            d = {"PMID" : pmid, "xml" : xml, "Tstamp" : str(last_date), "medline_xml_filename_id" : filename_id}
+            sql_insert = 'INSERT INTO medline_xml (PMID, xml, Tstamp, medline_xml_filename_id) VALUES (%(PMID)s, %(xml)s, %(Tstamp)s, %(medline_xml_filename_id)s) '
+            sql_insert += 'ON DUPLICATE KEY UPDATE xml=values(xml), Tstamp=values(Tstamp), medline_xml_filename_id=values(medline_xml_filename_id)'
+            return self.execute(sql_insert, d)
 
         return None
 
