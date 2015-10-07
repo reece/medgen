@@ -180,6 +180,15 @@ class GeneDB(SQLData):
         return self.fetchall(_sql)
 
 
+    def get_gene_list_from_mim(self, mim):
+        sql = """
+            SELECT Symbol AS gene_name FROM gene_info WHERE GeneID IN
+            (SELECT  DISTINCT GeneID from mim2gene_medgen WHERE MIM = {})
+        """.format(mim)
+
+        return self.list_genes(sql)
+
+
     #TODO: @andymc: delete?
     def gene2accession_for_known_acc(self, accession):
         """

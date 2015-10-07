@@ -221,6 +221,27 @@ class MedGenDB(SQLData):
 
         raise Exception('Unknown concept unique identifier format for %s' + unique_id)
 
+    def select_hpo_view_medgen_hpo(self, cui):
+        """
+        HPO Human Phenotype Ontology
+        :param cui: MedGen concept
+        :return: MySQL result
+        +---------------+--------------+------+-----+---------+-------+
+        | Field         | Type         | Null | Key | Default | Extra |
+        +---------------+--------------+------+-----+---------+-------+
+        | SourceVocab   | varchar(20)  | NO   | MUL | NULL    |       |
+        | SemanticType  | varchar(50)  | NO   | MUL | NULL    |       |
+        | ConceptID     | char(8)      | NO   | MUL | NULL    |       |
+        | ConceptName   | text         | NO   |     | NULL    |       |
+        | PhenotypeName | text         | NO   |     | NULL    |       |
+        | HPO_ID        | varchar(100) | YES  | MUL | NULL    |       |
+        +---------------+--------------+------+-----+---------+-------+
+        """
+        return self.fetchall(
+            "select * from medgen.view_medgen_hpo where ConceptID = '%s' " % cui)
+
+    def select_mim_from_cui(self, cui):
+        return self.fetchlist("select DISTINCT MIM_number from medgen_hpo_omim where omim_cui='{}'".format(cui), "MIM_number")
 
 
 

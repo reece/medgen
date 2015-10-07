@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+# from __future__ import absolute_import
 
 from .dataset import SQLData
 from ..parse.concept import Concept
@@ -310,6 +310,14 @@ class ClinVarDB(SQLData):
                              .replace('?', str(gene.id)) )
 
 
+    # TODO: deprecated
+    def select_clinvar_gene_list_for_cui(self, cui):
+        """
+        select ClinVar genes associated with MedGen CUI
+        :param cui:
+        :return:
+        """
+        return self.list_genes("select Symbol as gene_name from gene_condition_source_id where ConceptID = '%s' " % cui)
     def get_version(self):
         '''
         Get the ClinVar version

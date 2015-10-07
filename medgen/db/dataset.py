@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, unicode_literals, print_function
+# from __future__ import absolute_import
+from __future__ import unicode_literals, print_function
 
 from pyrfc3339 import parse
-
 import MySQLdb as mdb
 import MySQLdb.cursors as cursors
 import PySQLPool
@@ -76,7 +76,7 @@ class SQLData(object):
             raises Exception
         '''
         results = self.fetchall(select_sql)
-        return results[0] if len(results)>0 else None
+        return results[0] if len(results) > 0 else None
 
     def fetchID(self, select_sql, id_colname='ID'):
         results = self.fetchrow(select_sql)
@@ -86,6 +86,23 @@ class SQLData(object):
             else:
                 raise RuntimeError("No ID column found.  SQL query: %s" % select_sql)
         return None  # no results found
+
+
+    def list_concepts(self, select_sql):
+        """
+        Fetch list of concepts
+        :param select_sql: query
+        :return: list cui
+        """
+        return self.fetchlist(select_sql, 'CUI')
+
+    def list_genes(self, select_sql):
+        """
+        Fetch list of genes
+        :param select_sql: query
+        :return: list HGNC
+        """
+        return self.fetchlist(select_sql, 'gene_name')
 
     #UNUSED: confirmed not used anywhere in medgen-python or variant2pubmed
     #def fetchall_where(self, select_sql, _value, _key=SQLValues.tic('?')):
@@ -143,15 +160,15 @@ class SQLData(object):
 
         clauses = []
 
-        for k,v in field_value_dict.items():
+        for k, v in field_value_dict.items():
             clause = '%s=' % k
             # surround strings and datetimes with quotation marks
-            if v==None:
+            if v == None:
                 clause += 'NULL'
             elif hasattr(v, 'strftime'):
                 clause += '"%s"' % v.strftime(SQLDATE_FMT)
-            elif isinstance(v, basestring):
-                clause += EscapeString(v) #surrounds strings with quotes and unicodes them.
+            elif hasattr(v, 'lower'):
+                clause += EscapeString(v)  #surrounds strings with quotes and unicodes them.
             else:
                 clause += unicode(v)
             clauses.append(clause)
@@ -167,26 +184,26 @@ class SQLData(object):
         :param: field_value_dict: map of field=value
         :return: row_id (integer) (returns 0 if insert failed)
         '''
-        if len(field_value_dict)==0:
+        if len(field_value_dict) == 0:
             raise RuntimeError("Do not support delete without a WHERE clause")
 
         where_sql = ''
-        for k,v in field_value_dict.items():
-            if v==None:
+        for k, v in field_value_dict.items():
+            if v == None:
                 v = 'NULL'
                 where_sql += 'AND {} is NULL '.format(k)
             # surround strings and datetimes with quotation marks
             elif hasattr(v, 'strftime'):
                 v = '"%s"' % v.strftime(SQLDATE_FMT)
                 where_sql += 'AND {}={} '.format(k, v)
-            elif isinstance(v, basestring):
-                v = EscapeString(v) # surrounds strings with quotes and unicodes them.
+            elif hasattr(v, 'lower'):
+                v = EscapeString(v)  # surrounds strings with quotes and unicodes them.
                 where_sql += 'AND {}={} '.format(k, v)
             else:
                 v = unicode(v)
                 where_sql += 'AND {}={} '.format(k, v)
 
-        where_sql =  where_sql[len('AND '):]
+        where_sql = where_sql[len('AND '):]
 
         sql = 'delete from {} where {};'.format(tablename, where_sql)
 
@@ -227,7 +244,8 @@ class SQLData(object):
         return {'header': header, 'tables': self.fetchall('call mem')}
 
     def last_loaded(self, dbname='DATABASE()'):
-        return self.fetchID("select event_time as ID from "+dbname+"." + "log where entity_name = 'load_database.sh' and message = 'done' order by idx desc limit 1")
+        return self.fetchID(
+            "select event_time as ID from " + dbname + "." + "log where entity_name = 'load_database.sh' and message = 'done' order by idx desc limit 1")
 
     def PMID(self, sql):
         '''
@@ -257,7 +275,7 @@ class SQLData(object):
         if maxlen < 3:
             raise RuntimeError('maxlen must be at least 3')
         if len(inp) > maxlen:
-            inp = '%s...' % inp[:maxlen-3]
+            inp = '%s...' % inp[:maxlen - 3]
         return inp
 
     def get_last_mirror_time(self, entity_name):
@@ -267,9 +285,30 @@ class SQLData(object):
         :param entity_name: table name for db, for example, bic_brca1
         :return: datetime if found
         '''
-        sql_query = 'SELECT event_time FROM log WHERE entity_name = "?" AND message like "rows loaded %" ORDER BY event_time DESC limit 1'.replace('?', entity_name)
+        sql_query = 'SELECT event_time FROM log WHERE entity_name = "?" AND message like "rows loaded %" ORDER BY event_time DESC limit 1'.replace(
+            '?', entity_name)
         result = self.fetchrow(sql_query)
         if result:
             return result['event_time']
         raise RuntimeError('Query "%s" returned no results. Have you loaded the %s table?' % (sql_query, entity_name))
 
+
+    def create_index(self, table, colspec):
+        """
+        Create index on a specified table using the colums defined.
+        Index start/stop times are logged to the "log" table.
+        :param table: name of the table, example, "train"
+        :param colspec: name of column, for example, "RQ"
+        :return:
+        """
+        self.execute("call create_index('%s', '%s') " % (table, colspec))
+
+    def fetchlist(self, select_sql, column='gene_name'):
+        """
+        Fetch as list
+        :param select_sql: query
+        :param column: name of column you want to make a list out of
+        :return: list
+        """
+        rows = self.fetchall(select_sql)
+        return [] if rows is None else [str(r[column]) for r in rows]
