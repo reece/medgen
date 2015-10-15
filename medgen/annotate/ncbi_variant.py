@@ -20,7 +20,8 @@ def _ncbi_variant_report_service(hgvs_text):
     :param hgvs_text: ( c.DNA | r.RNA | p.Protein | g.Genomic )
     :return: JSON (dictionary)
     """
-    r = requests.post("http://www.ncbi.nlm.nih.gov/projects/SNP/VariantAnalyzer/var_rep.cgi", data={"annot1": hgvs_text})
+    #r = requests.post("http://www.ncbi.nlm.nih.gov/projects/SNP/VariantAnalyzer/var_rep.cgi", data={"annot1": hgvs_text})
+    r = requests.get("http://www.ncbi.nlm.nih.gov/projects/SNP/VariantAnalyzer/var_rep.cgi?annot1={}".format(hgvs_text))
     res = r.text
 
     if 'Error' in res:
