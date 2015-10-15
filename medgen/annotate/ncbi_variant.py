@@ -1,6 +1,6 @@
 # from __future__ import absolute_import
 
-import requests, json
+import requests, json, urllib
 from ..db.clinvar import ClinVarDB
 from ..log import log, IS_DEBUG_ENABLED
 
@@ -21,7 +21,8 @@ def _ncbi_variant_report_service(hgvs_text):
     :return: JSON (dictionary)
     """
     #r = requests.post("http://www.ncbi.nlm.nih.gov/projects/SNP/VariantAnalyzer/var_rep.cgi", data={"annot1": hgvs_text})
-    r = requests.get("http://www.ncbi.nlm.nih.gov/projects/SNP/VariantAnalyzer/var_rep.cgi?annot1={}".format(hgvs_text))
+    hgvs_text = str(hgvs_text)
+    r = requests.get("http://www.ncbi.nlm.nih.gov/projects/SNP/VariantAnalyzer/var_rep.cgi?annot1={}".format(urllib.quote(hgvs_text)))
     res = r.text
 
     if 'Error' in res:
