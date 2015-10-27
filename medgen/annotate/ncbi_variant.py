@@ -145,6 +145,17 @@ def _clinvar_variant2pubmed(hgvs_text):
     return set([int(entry) for entry in pubmeds])
 
 
+def clinvar2pmid_with_accessions(hgvs_list):
+    ret = []
+    citations = ClinVarDB().var_citations(hgvs_list)
+    if citations:
+        for cite in citations:
+            article_id = cite['citation_id']
+            pmid = article_id if cite['citation_source'] == 'PubMed' else PMCID2Article(article_id)
+            if pmid:
+                ret.append({"hgvs_text": cite['hgvs_text'], "pmid": pmid, "accession": cite['RCVaccession']})
+    return ret
+
 
 ##########################################################################################
 #

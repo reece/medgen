@@ -166,8 +166,12 @@ class ClinVarDB(SQLData):
         :param hgvs_text: c.DNA, r.RNA, p.Protein, g.Genomic
         :return: citations from ClinVar
         """
-        return self.fetchall(
-             "select citation_id, citation_source from clinvar_hgvs H, var_citations C where H.VariationID = C.VariationID and H.hgvs_text = '%s' "  % hgvs_text)
+        if isinstance(hgvs_text, basestring):
+            hgvs_text = [hgvs_text]
+
+        hgvs_clause = " or ".join(map(lambda x: " H.hgvs_text = '{}' ".format(x), hgvs_text))
+        sql = "select C.citation_id, C.citation_source, H.RCVaccession, H.hgvs_text from clinvar_hgvs H, var_citations C where H.VariationID = C.VariationID and ({})".format(hgvs_clause)
+        return self.fetchall(sql)
 
 
     def molecular_consequences(self, hgvs_text):
