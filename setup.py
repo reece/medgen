@@ -10,17 +10,15 @@ setup(
     url = 'https://bitbucket.org/locusdevelopment/medgen-python',
     author = 'Invitae, Inc.',
     maintainer = 'BioMed',
-    author_email = 'info@locusdev.net',
-    maintainer_email = 'info@locusdev.net',
+    author_email = 'biomed@invitae.com',
+    maintainer_email = 'biomed@invitae.com',
     license = 'Apache License 2.0 (http://www.apache.org/licenses/LICENSE-2.0)',
     packages = find_packages(),
     package_data={'medgen': ['config/*.ini']},
     install_requires = [
-        'setuptools',
-        'configparser',
-        'MySQL-python',
-        'pysqlpool',
-        'metapub',
+        'pymysql',
+        #'metapub',  # pip install -e /path/to/metapub-py3k
+        'pyrfc3339',
         ],
     )
 

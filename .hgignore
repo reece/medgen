@@ -6,6 +6,7 @@ syntax: glob
 *.egg-info
 tmp
 ve
+ve3k
 dist
 *.egg-info
 build
@@ -22,3 +23,4 @@ examples/
 .idea/*
 .coverage
 tests/nosetests.xml
+.cache
