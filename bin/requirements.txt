@@ -1,4 +1,4 @@
-setuptools==17.1
+setuptools==65.5.1
 MySQL-Python
 pysqlpool
 configparser
